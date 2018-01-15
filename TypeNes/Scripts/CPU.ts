@@ -18,12 +18,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-module NES {
-    export enum IRQType { IRQ_NORMAL = 0, IRQ_NMI = 1, IRQ_RESET = 2 };
+namespace NES {
+    export enum IRQType { IRQ_NORMAL = 0, IRQ_NMI = 1, IRQ_RESET = 2 }
 
     // https://en.wikibooks.org/wiki/6502_Assembly
     //
-    enum ADDRESSING_MODE{
+    enum ADDRESSING_MODE {
         ACCUMULATOR = 4,
         IMPLIED = 2,
         IMMEDIATE = 5,
@@ -37,7 +37,7 @@ module NES {
         ZERO_PAGE_INDEXED_WITH_Y = 7,
         ZERO_PAGE_INDEXED_WITH_X_INDIRECT = 10,
         ZERO_PAGE_INDIRECT_INDEXED_WITH_Y = 11,
-    };
+    }
 
     enum INSTRUCTIONS {
         ADC = 0,
@@ -161,15 +161,15 @@ module NES {
                         break;
                 }
             }
-            var inst = this.read8(this.REG_PC);
-            var opdata = this.instructionsData[inst];
-            var opcode = opdata & 0xff;
-            var addrMode = (opdata >> 8) & 0xff;
-            var oplenth = (opdata >> 16) & 0xff;
-            var opcycles = (opdata >> 24) & 0xff;
+            const inst = this.read8(this.REG_PC);
+            const opdata = this.instructionsData[inst];
+            const opcode = opdata & 0xff;
+            const addrMode = (opdata >> 8) & 0xff;
+            let oplenth = (opdata >> 16) & 0xff;
+            const opcycles = (opdata >> 24) & 0xff;
 
-            var operandAddr: number = 0;
-            var extraCycle: number = 0;
+            let operandAddr: number = 0;
+            let extraCycle: number = 0;
 
             switch (addrMode) {
                 case ADDRESSING_MODE.ABSOLUTE:
@@ -196,7 +196,7 @@ module NES {
                 case ADDRESSING_MODE.IMPLIED:
                     break;
                 case ADDRESSING_MODE.RELATIVE:
-                    var val = this.read8(this.REG_PC + 1);
+                    const val = this.read8(this.REG_PC + 1);
                     operandAddr = val < 0x80 ? this.REG_PC + oplenth + val : this.REG_PC + oplenth + val - 256;
                     break;
                 case ADDRESSING_MODE.ZERO_PAGE:
@@ -239,28 +239,30 @@ module NES {
 
             // http://nesdev.com/6502.txt
             // http://www.6502.org/tutorials/6502opcodes.html
+            let temp = 0;
+            let operand = 0;
             switch (opcode) {
                 case INSTRUCTIONS.ADC:
-                    var operand = this.read8(operandAddr);
-                    var temp = this.REG_A + operand + this.FLAG_C;
+                    operand = this.read8(operandAddr);
+                    temp = this.REG_A + operand + this.FLAG_C;
 
-                    this.FLAG_N = (temp>>7)&1;
-                    this.FLAG_Z = (temp&0xff) == 0 ? 1 : 0;
+                    this.FLAG_N = (temp >> 7) & 1;
+                    this.FLAG_Z = (temp & 0xff) == 0 ? 1 : 0;
                     this.FLAG_C = temp > 0xff ? 1 : 0;
                     this.FLAG_V = (((this.REG_A ^ operand) & 0x80) == 0) && (((this.REG_A ^ temp) & 0x80) != 0) ? 1 : 0;
                     this.REG_A = temp & 0xff;
                     break;
                 case INSTRUCTIONS.AND:
-                    var operand = this.read8(operandAddr);
+                    operand = this.read8(operandAddr);
                     this.REG_A = this.REG_A & operand;
 
-                    this.FLAG_N = (this.REG_A>>7) & 1;
+                    this.FLAG_N = (this.REG_A >> 7) & 1;
                     this.FLAG_Z = this.REG_A == 0 ? 1 : 0;
                     break;
                 case INSTRUCTIONS.ASL:
-                    var operand = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
-                    var temp = this.REG_A << 1;
-                    this.FLAG_N = (temp>>7) & 1;
+                    operand = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
+                    temp = this.REG_A << 1;
+                    this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = (temp & 0xff) == 0 ? 1 : 0;
                     this.FLAG_C = (this.REG_A & 0x80) != 0 ? 1 : 0;
                     this.REG_A = temp & 0xff;
@@ -287,7 +289,7 @@ module NES {
                     }
                     break;
                 case INSTRUCTIONS.BIT:
-                    var operand = this.read8(operandAddr);
+                    operand = this.read8(operandAddr);
                     this.FLAG_N = (operand >> 7) & 1;
                     this.FLAG_V = (operand >> 6) & 1;
                     this.FLAG_Z = (operand & this.REG_A) == 0 ? 1 : 0;
@@ -343,87 +345,87 @@ module NES {
                     this.FLAG_V = 0;
                     break;
                 case INSTRUCTIONS.CMP:
-                    var operand = this.read8(operandAddr);
-                    var temp = this.REG_A - operand;
-                    this.FLAG_N = (temp>>7) & 1;
+                    operand = this.read8(operandAddr);
+                    temp = this.REG_A - operand;
+                    this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = (temp & 0xff) == 0 ? 1 : 0;
                     this.FLAG_C = temp >= 0 ? 1 : 0;
                     break;
                 case INSTRUCTIONS.CPX:
-                    var operand = this.read8(operandAddr);
-                    var temp = this.REG_X - operand;
+                    operand = this.read8(operandAddr);
+                    temp = this.REG_X - operand;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = (temp & 0xff) == 0 ? 1 : 0;
                     this.FLAG_C = temp >= 0 ? 1 : 0;
                     break;
                 case INSTRUCTIONS.CPY:
-                    var operand = this.read8(operandAddr);
-                    var temp = this.REG_Y - operand;
+                    operand = this.read8(operandAddr);
+                    temp = this.REG_Y - operand;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = (temp & 0xff) == 0 ? 1 : 0;
                     this.FLAG_C = temp >= 0 ? 1 : 0;
                     break;
                 case INSTRUCTIONS.DEC:
-                    var operand = this.read8(operandAddr);
-                    var temp = (operand - 1)&0xff;
-                    this.FLAG_N = (temp>>7) & 1;
+                    operand = this.read8(operandAddr);
+                    temp = (operand - 1) & 0xff;
+                    this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.write8(operandAddr, temp);
                     break;
                 case INSTRUCTIONS.DEX:
-                    var temp = (this.REG_X - 1)&0xff;
+                    temp = (this.REG_X - 1) & 0xff;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.REG_X = temp & 0xff;
                     break;
                 case INSTRUCTIONS.DEY:
-                    var temp = (this.REG_Y - 1)&0xff;
+                    temp = (this.REG_Y - 1) & 0xff;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.REG_Y = temp & 0xff;
                     break;
                 case INSTRUCTIONS.EOR:
-                    this.REG_A = (this.REG_A ^ this.read8(operandAddr))&0xff;
+                    this.REG_A = (this.REG_A ^ this.read8(operandAddr)) & 0xff;
                     this.FLAG_N = (this.REG_A >> 7) & 1;
                     this.FLAG_Z = this.REG_A == 0 ? 1 : 0;
                     break;
                 case INSTRUCTIONS.INC:
-                    var operand = this.read8(operandAddr);
-                    var temp = (operand + 1) & 0xff;
+                    operand = this.read8(operandAddr);
+                    temp = (operand + 1) & 0xff;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.write8(operandAddr, temp);
                     break;
                 case INSTRUCTIONS.INX:
-                    var temp = (this.REG_X + 1) & 0xff;
+                    temp = (this.REG_X + 1) & 0xff;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.REG_X = temp;
                     break;
                 case INSTRUCTIONS.INY:
-                    var temp = (this.REG_Y + 1) & 0xff;
+                    temp = (this.REG_Y + 1) & 0xff;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.REG_Y = temp;
                     break;
                 case INSTRUCTIONS.JMP:
-                    //this.REG_PC = this.read16(operandAddr);
-                    //if (this.counter == 0x19d32) {
-                    //    alert("hit!");
-                    //}
+                    // this.REG_PC = this.read16(operandAddr);
+                    // if (this.counter == 0x19d32) {
+                    //     alert("hit!");
+                    // }
                     this.REG_PC = operandAddr;
                     oplenth = 0;
                     break;
                 case INSTRUCTIONS.JSR:
                     this.push(((this.REG_PC + 2) >> 8) & 0xff);
                     this.push((this.REG_PC + 2) & 0xff);
-                    //this.REG_PC = this.read16(operandAddr);
+                    // this.REG_PC = this.read16(operandAddr);
                     this.REG_PC = operandAddr;
                     oplenth = 0;
                     break;
                 case INSTRUCTIONS.LDA:
-                    //if (this.counter == 0x8e71)
-                    //    alert("LDA hit!");
+                    // if (this.counter == 0x8e71)
+                    //     alert("LDA hit!");
                     this.REG_A = this.read8(operandAddr);
                     this.FLAG_N = (this.REG_A >> 7) & 1;
                     this.FLAG_Z = this.REG_A == 0 ? 1 : 0;
@@ -439,7 +441,7 @@ module NES {
                     this.FLAG_Z = this.REG_Y == 0 ? 1 : 0;
                     break;
                 case INSTRUCTIONS.LSR:
-                    var temp = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
+                    temp = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
                     this.FLAG_N = 0;
                     this.FLAG_C = temp & 1;
                     temp = temp >> 1;
@@ -453,8 +455,8 @@ module NES {
                 case INSTRUCTIONS.NOP:
                     break;
                 case INSTRUCTIONS.ORA:
-                    var operand = this.read8(operandAddr);
-                    var temp = operand | this.REG_A;
+                    operand = this.read8(operandAddr);
+                    temp = operand | this.REG_A;
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
                     this.REG_A = temp;
@@ -474,11 +476,11 @@ module NES {
                     this.setPS(this.pop());
                     break;
                 case INSTRUCTIONS.ROL:
-                    var operand = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
-                    var temp = ((operand << 1)&0xff) | this.FLAG_C;
+                    operand = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
+                    temp = ((operand << 1) & 0xff) | this.FLAG_C;
 
                     this.FLAG_N = (temp >> 7) & 1;
-                    this.FLAG_C = (operand>>7) & 1;
+                    this.FLAG_C = (operand >> 7) & 1;
                     this.FLAG_Z = temp == 0 ? 1 : 0;
 
                     if (addrMode == ADDRESSING_MODE.ACCUMULATOR) {
@@ -488,8 +490,8 @@ module NES {
                     }
                     break;
                 case INSTRUCTIONS.ROR:
-                    var operand = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
-                    var temp = (operand >> 1) | (this.FLAG_C<<7);
+                    operand = addrMode == ADDRESSING_MODE.ACCUMULATOR ? this.REG_A : this.read8(operandAddr);
+                    temp = (operand >> 1) | (this.FLAG_C << 7);
 
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_C = operand & 1;
@@ -504,7 +506,7 @@ module NES {
                 case INSTRUCTIONS.RTI:
                     this.setPS(this.pop());
                     this.REG_PC = this.pop();
-                    this.REG_PC = this.REG_PC+(this.pop() << 8);
+                    this.REG_PC = this.REG_PC + (this.pop() << 8);
                     oplenth = 0;
                     break;
                 case INSTRUCTIONS.RTS:
@@ -514,8 +516,8 @@ module NES {
                     oplenth = 0;
                     break;
                 case INSTRUCTIONS.SBC:
-                    var operand = this.read8(operandAddr);
-                    var temp = this.REG_A - operand - (1 - this.FLAG_C);
+                    operand = this.read8(operandAddr);
+                    temp = this.REG_A - operand - (1 - this.FLAG_C);
                     this.FLAG_N = (temp >> 7) & 1;
                     this.FLAG_Z = (temp & 0xff) == 0 ? 1 : 0;
                     this.FLAG_C = temp < 0 ? 0 : 1;
@@ -534,16 +536,16 @@ module NES {
                     break;
                 case INSTRUCTIONS.STA:
                     this.write8(operandAddr, this.REG_A);
-                    //this.REG_A = this.read8(operandAddr);
-                    //this.REG_A = operand;
+                    // this.REG_A = this.read8(operandAddr);
+                    // this.REG_A = operand;
                     break;
                 case INSTRUCTIONS.STX:
                     this.write8(operandAddr, this.REG_X);
-                    //this.REG_X = this.read8(operandAddr);
+                    // this.REG_X = this.read8(operandAddr);
                     break;
                 case INSTRUCTIONS.STY:
                     this.write8(operandAddr, this.REG_Y);
-                    //this.REG_Y = this.read8(operandAddr);
+                    // this.REG_Y = this.read8(operandAddr);
                     break;
                 case INSTRUCTIONS.TAX:
                     this.REG_X = this.REG_A;
@@ -571,7 +573,7 @@ module NES {
                     return -1;
             }
             this.REG_PC += oplenth;
-            var totalCycles = opcycles + extraCycle;
+            const totalCycles = opcycles + extraCycle;
             if (this.machine.debugger.isDebuggerEnabled(this.counter)) {
                 this.machine.debugger.setAfter(this.counter, this.REG_PC, inst, this.REG_A,
                     this.REG_X,
@@ -599,24 +601,24 @@ module NES {
             this.REG_S = 0x100;
             this.REG_X = 0;
             this.REG_Y = 0;
-            //this.RAM = new Array(0x800);
+            // this.RAM = new Array(0x800);
             this.haltCycles = 0;
-            for (var i = 0; i < 0x10000; i++) {
+            for (let i = 0; i < 0x10000; i++) {
                 this.mem[i] = 0;
             }
 
-            for (var i: number = 0; i < 0x2000; i++) {
+            for (let i: number = 0; i < 0x2000; i++) {
                 this.mem[i] = 0xff;
             }
 
-            for (var i: number = 0; i < 4; i++) {
+            for (let i: number = 0; i < 4; i++) {
                 this.mem[i * 0x800 + 0x008] = 0xf7;
                 this.mem[i * 0x800 + 0x009] = 0xef;
                 this.mem[i * 0x800 + 0x00a] = 0xdf;
                 this.mem[i * 0x800 + 0x00f] = 0xbf;
             }
 
-            for (var i: number = 0x2001; i < this.mem.length; i++) {
+            for (let i: number = 0x2001; i < this.mem.length; i++) {
                 this.mem[i] = 0;
             }
 
@@ -626,8 +628,8 @@ module NES {
             return (addr1 & 0xff00) != (addr2 & 0xff00);
         }
 
-        //http://emulation.wikia.com/wiki/NES_CPU
-        private handleIRQ_NORMAL(): void{
+        // http://emulation.wikia.com/wiki/NES_CPU
+        private handleIRQ_NORMAL(): void {
             this.push((this.REG_PC >> 8) & 0xff);
             this.push(this.REG_PC & 0xff);
             this.push(this.readPS());
@@ -650,7 +652,7 @@ module NES {
             this.REG_PC = this.read16(0xfffc);
         }
 
-        private push(val: number): void{
+        private push(val: number): void {
             this.mem[this.REG_S + 0x100] = (val & 0xff);
             this.REG_S = this.REG_S == 0 ? 0xff : this.REG_S - 1;
         }
@@ -680,9 +682,9 @@ module NES {
 
         private read16(addr: number): number {
             if (addr < 0x2000) {
-                return this.mem[addr & 0x7ff] | (this.mem[(addr+1) & 0x7ff]<<8);
+                return this.mem[addr & 0x7ff] | (this.mem[(addr + 1) & 0x7ff] << 8);
             } else {
-                return this.machine.mmap.load(addr) | (this.machine.mmap.load(addr+1)<<8);
+                return this.machine.mmap.load(addr) | (this.machine.mmap.load(addr + 1) << 8);
             }
         }
 
@@ -715,8 +717,8 @@ module NES {
         }
 
         private static calcInstructionData(): Array<number> {
-            var res = new Array<number>(256);
-            for (var i: number = 0; i < 256; i++) {
+            const res = new Array<number>(256);
+            for (let i: number = 0; i < 256; i++) {
                 res[i] = 0xff;
             }
 

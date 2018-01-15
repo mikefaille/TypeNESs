@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-module NES {
+namespace NES {
     enum PPU_STATUS {
         STATUS_SPRITE0HIT = 6,
         STATUS_VBLANK = 7,
@@ -26,16 +26,16 @@ module NES {
 
     export class Tile {
         public static backgroundColor: number;                          // background color
-        public pixels: number[]
+        public pixels: number[];
         constructor() {
             this.pixels = new Array(64);
-            for (var i = 0; i < 64; i++) {
+            for (let i = 0; i < 64; i++) {
                 this.pixels[i] = 0;
             }
         }
-        public setScanline(sline, byte1, byte2) {                       // Tile data comes from pattern table, and each line of the tile is combined by two bytes
-            var tIndex = sline << 3;
-            for (var x = 0; x < 8; x++) {
+        public setScanline(sline: number, byte1: number, byte2: number) {                       // Tile data comes from pattern table, and each line of the tile is combined by two bytes
+            const tIndex = sline << 3;
+            for (let x = 0; x < 8; x++) {
                 this.pixels[tIndex + x] = ((byte1 >> (7 - x)) & 1) +       //  Each bit in the first byte determines the lower bit of this pixel
                     (((byte2 >> (7 - x)) & 1) << 1);                    //  Each bit in the second byte determines the higher bit of the pixel
             }
@@ -76,12 +76,11 @@ module NES {
                 srcy2 = 240 - destY;
             }
 
-            var canvasIndex: number = (destY << 8) + destX;         //  Indicates which pixel occupy on canvas
-            var palIndex: number = 0;                               //  The lower 2 bits of the palette, which is also the array member value of the this.pix
-            var tpri: number = 0;
-            var tIndex = 0;                                         //  tIndex is the tile index for this.pix array
-            var tIndexStepInc: number = 0;
-            var tIndexLineInc: number = 0;
+            let canvasIndex: number = (destY << 8) + destX;         //  Indicates which pixel occupy on canvas
+            let palIndex: number = 0;                               //  The lower 2 bits of the palette, which is also the array member value of the this.pix
+            let tIndex = 0;                                         //  tIndex is the tile index for this.pix array
+            let tIndexStepInc: number = 0;
+            let tIndexLineInc: number = 0;
 
             if (!flipHorizontal && !flipVertical) {
                 tIndex = 0;
@@ -101,8 +100,8 @@ module NES {
                 tIndexLineInc = 0;
             }
 
-            for (var y = 0; y < 8; y++) {
-                for (var x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
                     if (x >= srcx1 && x < srcx2 && y >= srcy1 && y < srcy2) {
                         palIndex = this.pixels[tIndex];
                         if ((palIndex !== 0) && (!((buffer[canvasIndex] !== Tile.backgroundColor) && behindBackground))) {// && pri <= (tpri & 0xFF)) {         // pri is the index of the sprite tile. The smaller it is, the higher priority is has to be displayed on screen
@@ -125,7 +124,7 @@ module NES {
 
         constructor() {
             this.indexes = new Array(960);
-            for (var i = 0; i < 960; i++) {
+            for (let i = 0; i < 960; i++) {
                 this.indexes[i] = 0;
             }
             this.attrib = new Array(960);
@@ -139,25 +138,25 @@ module NES {
             return this.indexes[(rowY << 5) + rowX];
         }
 
-        public getAttrib(x, y) {
+        public getAttrib(x: number, y: number) {
             return this.attrib[y * 32 + x];
         }
 
         public writeAttrib(
-            index,                                              // the offset address from 0x3c0. 
-            value
+            index: number,                                              // the offset address from 0x3c0.
+            value: number
         ) {
-            var basex = (index % 8) * 4;                            // Every attribute byte covers 4x(2x2)=16 tiles
-            var basey = Math.floor(index / 8) * 4;
-            var add;
-            var tx, ty;
-            var attindex;
+            const basex = (index % 8) * 4;                            // Every attribute byte covers 4x(2x2)=16 tiles
+            const basey = Math.floor(index / 8) * 4;
+            let add;
+            let tx, ty;
+            let attindex;
 
-            for (var sqy = 0; sqy < 2; sqy++) {
-                for (var sqx = 0; sqx < 2; sqx++) {
+            for (let sqy = 0; sqy < 2; sqy++) {
+                for (let sqx = 0; sqx < 2; sqx++) {
                     add = (value >> (2 * (sqy * 2 + sqx))) & 3;
-                    for (var y = 0; y < 2; y++) {
-                        for (var x = 0; x < 2; x++) {
+                    for (let y = 0; y < 2; y++) {
+                        for (let x = 0; x < 2; x++) {
                             tx = basex + sqx * 2 + x;
                             ty = basey + sqy * 2 + y;
                             attindex = ty * 32 + tx;
@@ -173,7 +172,7 @@ module NES {
         private indexes: number[];
         constructor() {
             this.indexes = new Array(960);
-            for (var i = 0; i < 960; i++) {
+            for (let i = 0; i < 960; i++) {
                 this.indexes[i] = 0;
             }
         }
@@ -188,11 +187,11 @@ module NES {
         //  |   |   |   |   |
         //  `---+---+---+---'
         public setByte(index: number, value: number) {
-            var i = index * 16;
-            var topleft = value & 3;
-            var topright = (value >> 2) & 3;
-            var btmleft = (value >> 4) & 3;
-            var btmright = (value >> 6) & 3;
+            const i = index * 16;
+            const topleft = value & 3;
+            const topright = (value >> 2) & 3;
+            const btmleft = (value >> 4) & 3;
+            const btmright = (value >> 6) & 3;
 
             this.indexes[i] = topleft;
             this.indexes[i + 1] = topleft;
@@ -224,7 +223,7 @@ module NES {
         public RGBColors: number[];
         constructor() {
             this.RGBColors = new Array(16);
-            for (var i = 0; i < 16; i++) {
+            for (let i = 0; i < 16; i++) {
                 this.RGBColors[i] = 0;
             }
         }
@@ -318,12 +317,12 @@ module NES {
             this.curX = 0;
             this.curScanline = 0;
             this.screenBuffer = new Array(256 * 240);
-            for (var i = 0; i < 256 * 240; i++) {
+            for (let i = 0; i < 256 * 240; i++) {
                 this.screenBuffer[i] = 0;
             }
 
             this.prevScreenBuffer = new Array(256 * 240);
-            for (var i = 0; i < 256 * 240; i++) {
+            for (let i = 0; i < 256 * 240; i++) {
                 this.prevScreenBuffer[i] = 0;
             }
 
@@ -356,14 +355,14 @@ module NES {
             this.OAMData = new Array(256);
 
             this.PPURAM = new Array(0x4000);
-            for (var i = 0; i < 0x4000; i++) {
+            for (let i = 0; i < 0x4000; i++) {
                 this.PPURAM[i] = 0;
             }
 
             this.mirroringType = undefined;
 
             this.tiles = new Array(512);
-            for (var i = 0; i < 512; i++) {
+            for (let i = 0; i < 512; i++) {
                 this.tiles[i] = new Tile();
             }
 
@@ -372,12 +371,12 @@ module NES {
             this.tileIndexCacheValid = false;
 
             this.nametables = new Array(4);
-            for (var i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; i++) {
                 this.nametables[i] = new Nametable();
             }
 
             this.attrTables = new Array(4);
-            for (var i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; i++) {
                 this.attrTables[i] = new AttrTable();
             }
 
@@ -393,7 +392,7 @@ module NES {
             this.sprCol = new Array(64); // Upper two bits of color
             this.sprVertFlip = new Array(64); // Vertical Flip
             this.sprHoriFlip = new Array(64); // Horizontal Flip
-            this.sprBehindBackground = new Array(64); //true: behind background
+            this.sprBehindBackground = new Array(64); // true: behind background
         }
 
         public writePPUCTRL$2000(value: number) {
@@ -416,13 +415,13 @@ module NES {
         }
 
         public writePPUSTATUS$2002(value: number) {
-            this.PPUSTATUS_VBlank = ((value >> 7) & 1) != 0 ? true : false;;
-            this.PPUSTATUS_Sprite0Hit = ((value >> 6) & 1) != 0 ? true : false;;
-            this.PPUSTATUS_SpriteOverflow = ((value >> 5) & 1) != 0 ? true : false;;
+            this.PPUSTATUS_VBlank = ((value >> 7) & 1) != 0 ? true : false;
+            this.PPUSTATUS_Sprite0Hit = ((value >> 6) & 1) != 0 ? true : false;
+            this.PPUSTATUS_SpriteOverflow = ((value >> 5) & 1) != 0 ? true : false;
         }
 
         public readPPUSTATUS$2002(): number {
-            var ret: number = this.machine.cpu.mem[0x2002];
+            const ret: number = this.machine.cpu.mem[0x2002];
             this.PPUSTATUS_PPUAddrLatch = false;
             this.setStatusFlag(PPU_STATUS.STATUS_VBLANK, false);
             return ret;
@@ -477,29 +476,29 @@ module NES {
         }
 
         private scrollVarsToAddress() {
-            var leftByte = (this.FineYScroll & 7) << 4;
+            let leftByte = (this.FineYScroll & 7) << 4;
             leftByte |= (this.PPUCTRL_NameTableSelect & 3) << 2;
             leftByte |= (this.CoarseYScroll >> 3) & 3;
 
-            var rightByte = (this.CoarseYScroll & 7) << 5;
+            let rightByte = (this.CoarseYScroll & 7) << 5;
             rightByte |= this.CoarseXScroll & 31;
 
             this.PPUAddr = ((leftByte << 8) | rightByte) & 0x7FFF;
         }
 
         private addressToScrollVars() {
-            var leftByte = (this.PPUAddr >> 8) & 0xFF;
+            const leftByte = (this.PPUAddr >> 8) & 0xFF;
             this.FineYScroll = (leftByte >> 4) & 7;
-            this.PPUCTRL_NameTableSelect = (leftByte >> 2) & 3
+            this.PPUCTRL_NameTableSelect = (leftByte >> 2) & 3;
             this.CoarseYScroll = (leftByte & 3) << 3;
 
-            var rightByte = this.PPUAddr & 0xFF;
+            const rightByte = this.PPUAddr & 0xFF;
             this.CoarseYScroll = (this.CoarseYScroll & 24) | ((rightByte >> 5) & 7);
             this.CoarseXScroll = this.PPUAddr & 31;
         }
 
         public readPPUData$2007(): number {
-            var ret: number = 0;
+            let ret: number = 0;
 
             this.scrollVarsToAddress();
 
@@ -523,7 +522,7 @@ module NES {
                 return ret; // Return the previous buffered value.
             }
 
-            ret = this.PPURAM[this.VRAMMirroringMap[this.PPUAddr]];;
+            ret = this.PPURAM[this.VRAMMirroringMap[this.PPUAddr]];
             if (this.PPUCTRL_IncrementMode) {
                 this.PPUAddr += 32;
             } else {
@@ -575,7 +574,7 @@ module NES {
 
         // Writes to memory, taking into account
         //      mirroring/mapping of address ranges.
-        private PaletteRAMWriteMirror(address, value) {
+        private PaletteRAMWriteMirror(address: number, value: number) {
             if (address == 0x3F00 || address == 0x3F10) {
                 this.PPURAM[0x3F00] = value;
                 this.PPURAM[0x3F00] = value;
@@ -593,7 +592,7 @@ module NES {
         }
 
         private updatePalettes() {
-            for (var i = 0; i < 16; i++) {
+            for (let i = 0; i < 16; i++) {
                 if (!this.PPUMASK_GREYSCALE) {
                     this.palettes[0].RGBColors[i] = Palette.NTSCRGBColors[this.PPURAM[0x3f00 + i] & 63];
                 }
@@ -604,7 +603,7 @@ module NES {
                     this.palettes[0].RGBColors[i] = this.palettes[0].RGBColors[0];        // 0x3f04, 0x3f08, 0x3f0c is the mapping of 0x3f00
                 }
             }
-            for (var i = 0; i < 16; i++) {
+            for (let i = 0; i < 16; i++) {
                 if (!this.PPUMASK_GREYSCALE) {
                     this.palettes[1].RGBColors[i] = Palette.NTSCRGBColors[this.PPURAM[0x3f10 + i] & 63];
                 }
@@ -618,9 +617,9 @@ module NES {
         }
 
         public writePPUData$4014(value: number): void {
-            var baseAddress = value * 0x100;
-            var data;
-            for (var i = this.OAMAddr; i < 256; i++) {
+            const baseAddress = value * 0x100;
+            let data;
+            for (let i = this.OAMAddr; i < 256; i++) {
                 data = this.machine.cpu.mem[baseAddress + i];
                 this.OAMData[i % 256] = data;
 
@@ -635,15 +634,15 @@ module NES {
         }
 
         public drawFullScreenBg() {
-            var bgcolor = this.palettes[0].RGBColors[0];
-            for (var i = 0; i < 256 * 240; i++) {
+            const bgcolor = this.palettes[0].RGBColors[0];
+            for (let i = 0; i < 256 * 240; i++) {
                 this.screenBuffer[i] = bgcolor;
             }
             Tile.backgroundColor = bgcolor;
         }
 
         private setStatusFlag(flag: number, value: boolean) {
-            var n = 1 << flag;
+            const n = 1 << flag;
             this.machine.cpu.mem[0x2002] =
                 ((this.machine.cpu.mem[0x2002] & (255 - n)) | (value ? n : 0));
             switch (flag) {
@@ -657,7 +656,7 @@ module NES {
         }
 
         public incrementCycle(cycles: number) {
-            var endFrame = false;
+            let endFrame = false;
 
             while (cycles > 0 && (!endFrame)) {
                 if (this.curX + cycles >= 340) {
@@ -699,8 +698,8 @@ module NES {
                     }
                     this.curScanline++;
                     this.curScanline = this.curScanline % 262;
-                } 
-                //if (this.curX == this.PPUSTATUS_Sprite0HitX &&
+                }
+                // if (this.curX == this.PPUSTATUS_Sprite0HitX &&
                 if (this.curX < this.PPUSTATUS_Sprite0HitX &&
                     (this.curX + cycles >= this.PPUSTATUS_Sprite0HitX) &&
                     this.curScanline == this.PPUSTATUS_Sprite0HitY + 1 &&
@@ -716,36 +715,36 @@ module NES {
                     this.curX += cycles;
                     cycles = 0;
                 }
-                //this.curX = (this.curX + cycles) % 340;
+                // this.curX = (this.curX + cycles) % 340;
 
             }
             return endFrame;
         }
 
         private drawScanline() {
-            var baseTileIndex = this.PPUCTRL_BackgroundTileSelect ? 256 : 0;
+            const baseTileIndex = this.PPUCTRL_BackgroundTileSelect ? 256 : 0;
             this.CntCoarseXScroll = this.CoarseXScroll;
             this.CntFineXScroll = this.FineXScroll;
             this.PPUCTRL_CntNameTableSelect = this.PPUCTRL_NameTableSelect;
 
-            var scanlineX = (this.curScanline << 8);
-            for (var tileCount = 0; tileCount < 32; tileCount++) {
-                var tile: Tile;
-                var tileAttr: number;
+            let scanlineX = (this.curScanline << 8);
+            for (let tileCount = 0; tileCount < 32; tileCount++) {
+                let tile: Tile;
+                let tileAttr: number;
 
                 if (this.tileIndexCacheValid) {
                     tile = this.tiles[this.tileIndexCache[this.CntCoarseXScroll]];
                     tileAttr = this.tileAttrCache[this.CntCoarseXScroll];
                 } else {
-                    var index = baseTileIndex + this.nametables[this.getRealNametableNo(this.PPUCTRL_CntNameTableSelect)].getTileIndex(this.CntCoarseXScroll, this.CntCoarseYScroll);
+                    const index = baseTileIndex + this.nametables[this.getRealNametableNo(this.PPUCTRL_CntNameTableSelect)].getTileIndex(this.CntCoarseXScroll, this.CntCoarseYScroll);
                     tile = this.tiles[index];
                     this.tileIndexCache[this.CntCoarseXScroll] = index;
                     tileAttr = this.nametables[this.nametableMapper[this.PPUCTRL_CntNameTableSelect]].getAttrib(this.CntCoarseXScroll, this.CntCoarseYScroll);
                     this.tileAttrCache[this.CntCoarseXScroll] = tileAttr;
                 }
 
-                for (var i = this.CntFineXScroll; i < 8; i++) {
-                    var dotLow2Bits = tile.pixels[(this.CntFineYScroll << 3) + i];
+                for (let i = this.CntFineXScroll; i < 8; i++) {
+                    const dotLow2Bits = tile.pixels[(this.CntFineYScroll << 3) + i];
                     this.screenBuffer[scanlineX++] = this.palettes[0].RGBColors[tileAttr + dotLow2Bits];
                 }
                 this.CntFineXScroll = 0;
@@ -770,13 +769,13 @@ module NES {
                 }
             }
         }
-        
+
         // Define a mirrored area in the address lookup table.
         // Assumes the regions don't overlap.
         // The 'to' region is the region that is physically in memory.
         //
         private setVRAMMirroringMap(fromStart: number, toStart: number, size: number): void {
-            for (var i = 0; i < size; i++) {
+            for (let i = 0; i < size; i++) {
                 this.VRAMMirroringMap[fromStart + i] = toStart + i;
             }
         }
@@ -788,10 +787,10 @@ module NES {
             this.mirroringType = type;
 
             // Remove mirroring:
-            if (this.VRAMMirroringMap == null) {
+            if (this.VRAMMirroringMap == undefined) {
                 this.VRAMMirroringMap = new Array(0x8000);
             }
-            for (var i = 0; i < 0x8000; i++) {
+            for (let i = 0; i < 0x8000; i++) {
                 this.VRAMMirroringMap[i] = i;
             }
 
@@ -858,8 +857,8 @@ module NES {
         //  this updateTileHelper to make sure that the tile pixels are updated
         //  immediately after the PPU mem write
         private updateTileHelper(address: number, value: number) {
-            var tileIndex = Math.floor(address / 16);
-            var leftOver = address % 16;
+            const tileIndex = Math.floor(address / 16);
+            const leftOver = address % 16;
             if (leftOver < 8) {
                 this.tiles[tileIndex].setScanline(
                     leftOver,
@@ -880,19 +879,18 @@ module NES {
             this.PPUSTATUS_Sprite0HitX = -1;
             this.PPUSTATUS_Sprite0HitY = -1;
 
-            var toffset;
-            var tIndexAdd = this.PPUCTRL_BackgroundTileSelect ? 0 : 256;
-            var t: Tile, i: number;
-            var bufferIndex: number;                    // Bufferindex is the tile pixel index
-            var bgPri;
+            let toffset;
+            const tIndexAdd = this.PPUCTRL_BackgroundTileSelect ? 0 : 256;
+            let t: Tile, i: number;
+            let bufferIndex: number;                    // Bufferindex is the tile pixel index
 
-            var x = this.sprX[0];
+            let x = this.sprX[0];
 
-            //  Sprite data is delayed by one scanline; 
-            //  you must subtract 1 from the sprite's Y coordinate
-            var y = this.sprY[0] + 1;
+            // Sprite data is delayed by one scanline;
+            // you must subtract 1 from the sprite's Y coordinate
+            const y = this.sprY[0] + 1;
 
-            var spriteHeight = this.PPUCTRL_SpriteHeight ? 16 : 8;
+            const spriteHeight = this.PPUCTRL_SpriteHeight ? 16 : 8;
             if (y <= scanline && y + spriteHeight > scanline && x >= -7 && x < 256) {
 
             }
@@ -925,8 +923,8 @@ module NES {
 
             bufferIndex = scanline * 256 + x;
 
-            var stepValue = this.sprHoriFlip[0] ? -1 : 1;
-            var stepBase = this.sprHoriFlip[0] ? 7 : 0;
+            const stepValue = this.sprHoriFlip[0] ? -1 : 1;
+            const stepBase = this.sprHoriFlip[0] ? 7 : 0;
 
             for (i = 0; i < 8; i++) {
                 if (x >= 0 && x < 256) {
@@ -948,7 +946,7 @@ module NES {
         // Updates the internally buffered sprite
         // data with this new byte of info.
         private spriteRamWriteUpdate(address: number, value: number) {
-            var tIndex = Math.floor(address / 4);
+            const tIndex = Math.floor(address / 4);
 
             if (tIndex === 0) {
                 this.checkSprite0Hit(this.curScanline);
@@ -980,7 +978,7 @@ module NES {
                 return;
             }
 
-            for (var i = 63; i >= 0; i--) {
+            for (let i = 63; i >= 0; i--) {
                 if (this.sprX[i] >= 0 &&
                     this.sprX[i] < 256 &&
                     this.sprY[i] + 8 >= 0 &&
@@ -989,8 +987,8 @@ module NES {
                     if (!this.PPUCTRL_SpriteHeight) {
                         // 8x8 sprites
 
-                        var srcy1 = 0;
-                        var srcy2 = 8;
+                        let srcy1 = 0;
+                        let srcy2 = 8;
 
                         if (this.sprY[i] < 0) {
                             srcy1 = 240 - this.sprY[i] - 1;
@@ -1009,13 +1007,13 @@ module NES {
                         );
                     } else {
                         // 8x16 sprites
-                        var top = this.sprTile[i];
+                        let top = this.sprTile[i];
                         if ((top & 1) !== 0) {
                             top = this.sprTile[i] - 1 + 256;
                         }
 
-                        var srcy1 = 0;
-                        var srcy2 = 8;
+                        let srcy1 = 0;
+                        let srcy2 = 8;
 
                         if (this.sprY[i] < 0) {
                             srcy1 = 0 - this.sprY[i] - 1;

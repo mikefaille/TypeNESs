@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 declare var webkitAudioContext: any;
 
-module NES {
+namespace NES {
     class SquareChannel {
         private papu: PAPU;
         public isEnabled: boolean;
@@ -73,20 +73,20 @@ module NES {
 
         public reset() {
             this.isEnabled = false;
-            //this.lengthCounter = 0;
+            // this.lengthCounter = 0;
             this.dutyIndex = 0;
             this.timer = 0;
             this.cycleCounter = 0;
             this.sweepTimer = 0;
 
-            //this.lengthCounterCycleCounter = 0;
+            // this.lengthCounterCycleCounter = 0;
             this.waveStepLength = 0;
             this.currentOutput = 0;
 
         }
 
         private updateWaveStatus() {
-            this.wavePeriodLength = (this.timer + 1) * 16;// this.papu.machine.opt_CPU_FREQ_NTSC
+            this.wavePeriodLength = (this.timer + 1) * 16; // this.papu.machine.opt_CPU_FREQ_NTSC
             this.waveStepLength = this.wavePeriodLength / 8;
             this.dutyIndex = 0;
             this.cycleCounter = 0;
@@ -94,7 +94,7 @@ module NES {
 
         public addCycles(nCycles: number) {
             this.cycleCounter += nCycles;
-            if (this.waveStepLength> 0 && this.cycleCounter >= this.waveStepLength) {
+            if (this.waveStepLength > 0 && this.cycleCounter >= this.waveStepLength) {
                 this.dutyIndex = (this.dutyIndex + 1) % 8;
                 this.cycleCounter = this.cycleCounter - this.waveStepLength;
                 if (this.timer >= 8 && this.isEnabled && this.lengthCounter > 0) {
@@ -117,7 +117,7 @@ module NES {
             this.sweepTimer++;
             if (this.sweepTimer >= this.sweepPeriod) {
                 this.sweepTimer = 0;
-                if (this.sweepShift > 0 && this.timer > 7){
+                if (this.sweepShift > 0 && this.timer > 7) {
                     if (this.sweepMode == 0) {
                         this.timer += (this.timer >> this.sweepShift);
                         if (this.timer > 4095) {
@@ -135,10 +135,10 @@ module NES {
             switch (regNum) {
                 case 0:
                     {
-                        this.dutyMode = (val>>6);
-                        this.lengthCounterEnalbled = (val&0x20)==0;
-                        this.isConstantVolume = (val&0x10) !=0;
-                        this.volume = val&0xf;
+                        this.dutyMode = (val >> 6);
+                        this.lengthCounterEnalbled = (val & 0x20) == 0;
+                        this.isConstantVolume = (val & 0x10) != 0;
+                        this.volume = val & 0xf;
                     }
                     break;
                 case 1:
@@ -149,9 +149,9 @@ module NES {
                         this.sweepShift = val & 0x7;
 
                         this.sweepTimer = 0;
-                        //if (this.sweepUnitEnabled) {
-                        //    alert("sweep unit enabled!");
-                        //}
+                        // if (this.sweepUnitEnabled) {
+                        //     alert("sweep unit enabled!");
+                        // }
                     }
                     break;
                 case 2:
@@ -196,11 +196,11 @@ module NES {
 
         // 0x400a:
         private timerLow: number;
-        
+
         // 0x400b:
         public lengthCounter: number;
         private timerHigh: number;
-        
+
 
         constructor(papu: PAPU) {
             this.papu = papu;
@@ -219,7 +219,7 @@ module NES {
         public writeRegister(addr: number, val: number) {
             switch (addr) {
                 case 0x4008:
-                    //this.isLinearCounterHalt = (val & 0x80) == 0 ? true : false;
+                    // this.isLinearCounterHalt = (val & 0x80) == 0 ? true : false;
 
                     this.linearCounterReloadValue = val & 0x7f;
                     if ((val & 0x80) == 0) {
@@ -234,7 +234,7 @@ module NES {
                     this.timer = this.timer & 0xff;
                     this.timer = this.timer | ((val & 7) << 8);
                     this.lengthCounter = this.papu.lengthCounterLookup[(val & 0xf8) >> 3];
-                    //this.isLinearCounterHalt = true;
+                    // this.isLinearCounterHalt = true;
                     this.linearCounter = this.linearCounterReloadValue;
                     break;
             }
@@ -257,9 +257,9 @@ module NES {
     class NoiseChannel {
         private papu: PAPU;
         public isEnabled: boolean;
-        //public lengthCounter: number;
+        // public lengthCounter: number;
         private noiseWaveLengthLookup: number[] = [0x4, 0x8, 0x10, 0x20, 0x40, 0x60, 0x80, 0xa,
-                                                0xca, 0xfe, 0x17c, 0x1fc, 0x2fa, 0x3f8,0x7f2,0xfe4];
+                                                0xca, 0xfe, 0x17c, 0x1fc, 0x2fa, 0x3f8, 0x7f2, 0xfe4];
 
         public cycleCounter: number;
         public currentOutput: number;
@@ -282,7 +282,7 @@ module NES {
         private isLengthCounterHalt: boolean;
         private isConstantVolume: boolean;
         private volume: number;
-        //private volume: number;
+        // private volume: number;
 
         // 0x400E
         private isNoiseLoop: boolean;
@@ -305,9 +305,9 @@ module NES {
                 case 0x400c:
                     this.isLengthCounterHalt = (val & 0x20) == 0;
                     this.isConstantVolume = (val & 0x10) != 0;
-                    //if (!this.isConstantVolume) {
-                    //    alert("not constant volume");
-                    //}
+                    // if (!this.isConstantVolume) {
+                    //     alert("not constant volume");
+                    // }
 
                     this.volume = val & 0xf;
                     break;
@@ -328,7 +328,7 @@ module NES {
         public cycleCounter: number;
         private bitIndex: number;
         private currentByte: number;
-        //public lengthCounter: number;
+        // public lengthCounter: number;
         private dmcWaveLengthLookup: number[] = [428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 84, 72, 54];
 
         // 0x4010:
@@ -344,7 +344,7 @@ module NES {
         // 0x4012:
         private dmcStartAddress: number;
         private currentAddr: number;
-        
+
         // 0x4013:
         public sampleLengthInByte: number;
         public currentLength: number;
@@ -357,7 +357,7 @@ module NES {
         constructor(papu: PAPU) {
             this.papu = papu;
             this.isEnabled = false;
-            //this.lengthCounter = 0;
+            // this.lengthCounter = 0;
             this.isLoop = false;
             this.dmcPeriodInCycle = 0;
             this.deltaCounter = 0;
@@ -419,16 +419,16 @@ module NES {
 
     export class PAPU {
         private totalCycles: number = 0;
-        private bufferSize: number = 8192*2;
+        private bufferSize: number = 8192 * 2;
         private lastPlayTime: number = 0;
-        private bufferPlayTime: number;// = this.bufferSize * 1000.0 / this.machine.opt_sampleRate;
+        private bufferPlayTime: number; // = this.bufferSize * 1000.0 / this.machine.opt_sampleRate;
         public machine: Machine;
         private square1: SquareChannel;
         private square2: SquareChannel;
         private noise: NoiseChannel;
         private triangle: TriangleChannel;
         private dmc: DMCChannel;
-        public audioContext: AudioContext;// = new AudioContext();//(window.AudioContext || window.webkitAudioContext)();
+        public audioContext: AudioContext; // = new AudioContext();//(window.AudioContext || window.webkitAudioContext)();
         public audioContext1: AudioContext;
         public audioBuffer: AudioBuffer;
         public audioBuffer1: AudioBuffer;
@@ -465,7 +465,7 @@ module NES {
         private frameCounterTickSequenceLength: number = 4;
         private frameCounterTickLengthInCycles: number;
         private frameCounterTickCycleCounter: number;
-        private frameCounterTickStep: number = 0; //ranging from 0-3 or 0-4, depending on the frameCounterMode
+        private frameCounterTickStep: number = 0; // ranging from 0-3 or 0-4, depending on the frameCounterMode
 
         constructor(machine: Machine) {
             this.machine = machine;
@@ -475,7 +475,7 @@ module NES {
             this.triangle = new TriangleChannel(this);
             this.dmc = new DMCChannel(this);
 
-            this.SAMPLING_CYCLES = this.machine.opt_CPU_FREQ_NTSC / this.machine.opt_sampleRate; //1789773/44100 = 40.5844 cycles
+            this.SAMPLING_CYCLES = this.machine.opt_CPU_FREQ_NTSC / this.machine.opt_sampleRate; // 1789773/44100 = 40.5844 cycles
             this.frameCounterTickLengthInCycles = this.machine.opt_CPU_FREQ_NTSC / 240; // APU runs at 240Hz
             this.apuCycleCounter = 0;
             this.bufferPlayTime =  this.bufferSize * 1000.0 / this.machine.opt_sampleRate;
@@ -520,9 +520,9 @@ module NES {
                     this.triangle.stepIndex = (this.triangle.stepIndex + 1) & 0x1f;
                     this.triangle.currentOutput = this.triangle.stepIndex > 15 ? (32 - this.triangle.stepIndex) : this.triangle.stepIndex;
                 }
-            } //else {
-              //  this.triangle.currentOutput = 0;
-            //}
+            } // else {
+              //   this.triangle.currentOutput = 0;
+            // }
 
             if (this.noise.isEnabled && this.noise.lengthCounter > 0 && this.noise.noisePeriodInCycle) {
                 this.noise.cycleCounter += cpuCycles;
@@ -550,10 +550,8 @@ module NES {
                             ((this.square2.isEnabled ? 1 : 0) << 1) |
                             (this.square1.isEnabled ? 1 : 0);
                     }
-                    break;
                 case 0x4017:
                     return (this.frameCounterMode << 7) | (this.frameCounterIRQInibit << 6);
-                    break;
                 default:
                     alert("invalid reading in papu:" + addr);
                     break;
@@ -628,15 +626,15 @@ module NES {
         }
 
         private sample(nCycles: number): void {
-            var output = 0.00752 * (this.square1.currentOutput + this.square2.currentOutput) + 0.00851 * this.triangle.currentOutput
+            const output = 0.00752 * (this.square1.currentOutput + this.square2.currentOutput) + 0.00851 * this.triangle.currentOutput
                     + 0.00494 * this.noise.currentOutput;
             this.sendToSource(output);
         }
 
-        private updateChannelStatus0x4015(val: number):void {
+        private updateChannelStatus0x4015(val: number): void {
             if ((val & 0x10) == 0) {
                 this.dmc.isEnabled = false;
-                //this.dmc.lengthCounter = 0;
+                // this.dmc.lengthCounter = 0;
             } else {
                 this.dmc.isEnabled = true;
                 this.dmc.dmcRestart();
@@ -721,7 +719,7 @@ module NES {
                     if (this.audioBufferArrayIndex == this.bufferSize) {
                         this.toPlay = !this.toPlay;
 
-                        var noteEndPos = this.bufferSize - 1;
+                        let noteEndPos = this.bufferSize - 1;
                         while (noteEndPos > 0) {
                             if (this.audioBufferArray[noteEndPos] != 0)
                                 break;
@@ -729,8 +727,8 @@ module NES {
                         }
 
                         if (noteEndPos > 0) {
-                            var backLength = Math.min(1000, noteEndPos - 0);
-                            for (var i = noteEndPos; i >= noteEndPos - backLength; i--) {
+                            const backLength = Math.min(1000, noteEndPos - 0);
+                            for (let i = noteEndPos; i >= noteEndPos - backLength; i--) {
                                 this.audioBufferArray[i] *= (i - noteEndPos + backLength) * 1.0 / backLength;
                             }
                         }
@@ -738,16 +736,16 @@ module NES {
 
                         this.audioBufferArrayIndex = 0;
                         this.noteStartPos = -1;
-                        var currentTime = Date.now();
-                        var delta = currentTime - this.lastPlayTime;
+                        const currentTime = Date.now();
+                        const delta = currentTime - this.lastPlayTime;
                         this.lastPlayTime = currentTime;
-                        var apu = this;
+                        const apu = this;
 
-                        //this.playMusic();
+                        // this.playMusic();
                         if (delta >= this.bufferPlayTime) {
                             apu.playMusic();
                         } else {
-                            setTimeout(function () { apu.playMusic() }, this.bufferPlayTime - delta);
+                            setTimeout(function () { apu.playMusic(); }, this.bufferPlayTime - delta);
                         }
                     }
                 }
@@ -768,7 +766,7 @@ module NES {
                     this.audioBufferArrayIndex1++;
                     if (this.audioBufferArrayIndex1 == this.bufferSize) {
                         this.toPlay = !this.toPlay;
-                        var noteEndPos = this.bufferSize - 1;
+                        let noteEndPos = this.bufferSize - 1;
                         while (noteEndPos > 0) {
                             if (this.audioBufferArray1[noteEndPos] != 0)
                                 break;
@@ -776,8 +774,8 @@ module NES {
                         }
 
                         if (noteEndPos > 0) {
-                            var backLength = Math.min(1000, noteEndPos - 0);
-                            for (var i = noteEndPos; i >= noteEndPos - backLength; i--) {
+                            const backLength = Math.min(1000, noteEndPos - 0);
+                            for (let i = noteEndPos; i >= noteEndPos - backLength; i--) {
                                 this.audioBufferArray1[i] *= (i - noteEndPos + backLength) * 1.0 / backLength;
                             }
                         }
@@ -785,15 +783,15 @@ module NES {
 
                         this.audioBufferArrayIndex1 = 0;
                         this.noteStartPos = -1;
-                        var currentTime = Date.now();
-                        var delta = currentTime - this.lastPlayTime;
+                        const currentTime = Date.now();
+                        const delta = currentTime - this.lastPlayTime;
                         this.lastPlayTime = currentTime;
-                        var apu = this;
+                        const apu = this;
 
                         if (delta >= this.bufferPlayTime) {
                             apu.playMusic1();
                         } else {
-                            setTimeout(function () { apu.playMusic1() }, this.bufferPlayTime - delta);
+                            setTimeout(function () { apu.playMusic1(); }, this.bufferPlayTime - delta);
                         }
                     }
                 }
@@ -801,7 +799,7 @@ module NES {
         }
 
         private playMusic() {
-            var source: AudioBufferSourceNode = this.audioContext.createBufferSource();
+            const source: AudioBufferSourceNode = this.audioContext.createBufferSource();
             // set the buffer in the AudioBufferSourceNode
             source.buffer = this.audioBuffer;
             // connect the AudioBufferSourceNode to the
@@ -812,7 +810,7 @@ module NES {
         }
 
         private playMusic1() {
-            var source: AudioBufferSourceNode = this.audioContext1.createBufferSource();
+            const source: AudioBufferSourceNode = this.audioContext1.createBufferSource();
             // set the buffer in the AudioBufferSourceNode
             source.buffer = this.audioBuffer1;
             // connect the AudioBufferSourceNode to the

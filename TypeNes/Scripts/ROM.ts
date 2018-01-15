@@ -18,17 +18,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-module NES {
+namespace NES {
     export enum MIRRORING_TYPE {
-        VERTICAL_MIRRORING=0,
-        HORIZONTAL_MIRRORING=1,
-        FOURSCREEN_MIRRORING=2,
-        SINGLESCREEN_MIRRORING=3,
-        SINGLESCREEN_MIRRORING2=4,
-        SINGLESCREEN_MIRRORING3=5,
-        SINGLESCREEN_MIRRORING4=6,
-        CHRROM_MIRRORING=7,
-    };
+        VERTICAL_MIRRORING = 0,
+        HORIZONTAL_MIRRORING = 1,
+        FOURSCREEN_MIRRORING = 2,
+        SINGLESCREEN_MIRRORING = 3,
+        SINGLESCREEN_MIRRORING2 = 4,
+        SINGLESCREEN_MIRRORING3 = 5,
+        SINGLESCREEN_MIRRORING4 = 6,
+        CHRROM_MIRRORING = 7,
+    }
 
     export class ROM {
         private machine: Machine;
@@ -66,7 +66,7 @@ module NES {
         }
 
         public load(data: Array<number>) {
-            var i, j, v;
+            let i, j, v;
 
             this.header = new Array(16);
             for (i = 0; i < 16; i++) {
@@ -80,7 +80,7 @@ module NES {
             this.fourScreen = (this.header[6] & 8) !== 0;
             this.mapperType = (this.header[6] >> 4) | (this.header[7] & 0xF0);
 
-            var foundError = false;
+            let foundError = false;
             for (i = 8; i < 16; i++) {
                 if (this.header[i] !== 0) {
                     foundError = true;
@@ -92,14 +92,14 @@ module NES {
             }
             // Load PRG-ROM banks:
             this.rom = new Array(this.romCount);
-            var offset = 16;
+            let offset = 16;
             for (i = 0; i < this.romCount; i++) {
                 this.rom[i] = new Array(16384);
                 for (j = 0; j < 16384; j++) {
                     if (offset + j >= data.length) {
                         break;
                     }
-                    //this.rom[i][j] = data.charCodeAt(offset + j) & 0xFF;
+                    // this.rom[i][j] = data.charCodeAt(offset + j) & 0xFF;
                     this.rom[i][j] = data[offset + j] & 0xFF;
                 }
                 offset += 16384;
@@ -112,7 +112,7 @@ module NES {
                     if (offset + j >= data.length) {
                         break;
                     }
-                    //this.vrom[i][j] = data.charCodeAt(offset + j) & 0xFF;
+                    // this.vrom[i][j] = data.charCodeAt(offset + j) & 0xFF;
                     this.vrom[i][j] = data[offset + j] & 0xFF;
                 }
                 offset += 4096;
@@ -128,8 +128,8 @@ module NES {
             }
 
             // Convert CHR-ROM banks to tiles:
-            var tileIndex;
-            var leftOver;
+            let tileIndex;
+            let leftOver;
             for (v = 0; v < this.vromCount; v++) {
                 for (i = 0; i < 4096; i++) {
                     tileIndex = i >> 4;
@@ -171,20 +171,16 @@ module NES {
             return "Unknown Mapper, " + this.mapperType;
         }
 
-        public createMapper(): IMapper{
+        public createMapper(): IMapper {
             switch (this.mapperType) {
                 case 0:
                     return new Mapper0(this.machine);
-                    break;
                 case 1:
                     return new Mapper1(this.machine);
-                    break;
                 case 2:
                     return new Mapper2(this.machine);
-                    break;
                 case 4:
                     return new Mapper4(this.machine);
-                    break;
                 default:
                     return new Mapper0(this.machine);
             }

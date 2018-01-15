@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-module NES {
+namespace NES {
     enum KEYS {
         KEY_A = 0,
         KEY_B = 1,
@@ -33,16 +33,16 @@ module NES {
         public state1: Array<number> = new Array(8);
         public state2: Array<number> = new Array(8);
         constructor() {
-            for (var i: number = 0; i < this.state1.length; i++) {
+            for (let i: number = 0; i < this.state1.length; i++) {
                 this.state1[i] = 0x40;
             }
             this.state2 = new Array(8);
-            for (i = 0; i < this.state2.length; i++) {
+            for (let i = 0; i < this.state2.length; i++) {
                 this.state2[i] = 0x40;
             }
         }
 
-        private setKey(key: number, value: number):boolean {
+        private setKey(key: number, value: number): boolean {
             switch (key) {
                 case 88: this.state1[KEYS.KEY_A] = value; break;      // X
                 case 89: this.state1[KEYS.KEY_B] = value; break;      // Y (Central European keyboard)

@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-module NES {
+namespace NES {
     export interface IMapper {
         reset(): void;
         write(address: number, value: number): void;
@@ -35,8 +35,8 @@ module NES {
             return new Mapper0(machine);
         }
 
-        public static copyArrayElements(src, srcPos: number, dest, destPos: number, length: number): void {
-            for (var i: number = 0; i < length; i++) {
+        public static copyArrayElements(src: Array<any>, srcPos: number, dest: Array<any>, destPos: number, length: number): void {
+            for (let i: number = 0; i < length; i++) {
                 dest[destPos + i] = src[srcPos + i];
             }
         }
@@ -63,8 +63,8 @@ module NES {
             this.joypadLastWrite = 0;
 
             this.mousePressed = false;
-            this.mouseX = null;
-            this.mouseY = null;
+            this.mouseX = undefined;
+            this.mouseY = undefined;
         }
 
         public write(address: number, value: number) {
@@ -122,7 +122,7 @@ module NES {
         }
 
         public regLoad(address: number) {
-            switch (address >> 12) { 
+            switch (address >> 12) {
                 case 0:
                     break;
 
@@ -248,7 +248,7 @@ module NES {
         }
 
         public readJoystick1() {
-            var ret;
+            let ret;
 
             switch (this.joystick1Counter) {
                 case 0:
@@ -290,7 +290,7 @@ module NES {
         }
 
         public readJoystick2() {
-            var ret;
+            let ret;
 
             switch (this.joystick2Counter) {
                 case 0:
@@ -378,8 +378,8 @@ module NES {
         protected loadRomBank(bank: number, address: number) {
             // Loads a ROM bank into the specified address.
             bank %= this.machine.rom.romCount;
-            //var data = this.nes.rom.rom[bank];
-            //cpuMem.write(address,data,data.length);
+            // var data = this.nes.rom.rom[bank];
+            // cpuMem.write(address,data,data.length);
             Mapper.copyArrayElements(this.machine.rom.rom[bank], 0, this.machine.cpu.mem, address, 16384);
         }
 
@@ -391,7 +391,7 @@ module NES {
             Mapper.copyArrayElements(this.machine.rom.vrom[bank % this.machine.rom.vromCount],
                 0, this.machine.ppu.PPURAM, address, 4096);
 
-            var vromTile = this.machine.rom.vromTile[bank % this.machine.rom.vromCount];
+            const vromTile = this.machine.rom.vromTile[bank % this.machine.rom.vromCount];
             Mapper.copyArrayElements(vromTile, 0, this.machine.ppu.tiles, address >> 4, 256);
         }
 
@@ -415,15 +415,15 @@ module NES {
                 return;
             }
 
-            var bank4k = Math.floor(bank1k / 4) % this.machine.rom.vromCount;
-            var bankoffset = (bank1k % 4) * 1024;
+            const bank4k = Math.floor(bank1k / 4) % this.machine.rom.vromCount;
+            const bankoffset = (bank1k % 4) * 1024;
             Mapper.copyArrayElements(this.machine.rom.vrom[bank4k], 0,
                 this.machine.ppu.PPURAM, bankoffset, 1024);
 
             // Update tiles:
-            var vromTile = this.machine.rom.vromTile[bank4k];
-            var baseIndex = address >> 4;
-            for (var i = 0; i < 64; i++) {
+            const vromTile = this.machine.rom.vromTile[bank4k];
+            const baseIndex = address >> 4;
+            for (let i = 0; i < 64; i++) {
                 this.machine.ppu.tiles[baseIndex + i] = vromTile[((bank1k % 4) << 6) + i];
             }
         }
@@ -433,22 +433,22 @@ module NES {
                 return;
             }
 
-            var bank4k = Math.floor(bank2k / 2) % this.machine.rom.vromCount;
-            var bankoffset = (bank2k % 2) * 2048;
+            const bank4k = Math.floor(bank2k / 2) % this.machine.rom.vromCount;
+            const bankoffset = (bank2k % 2) * 2048;
             Mapper.copyArrayElements(this.machine.rom.vrom[bank4k], bankoffset,
                 this.machine.ppu.PPURAM, address, 2048);
 
             // Update tiles:
-            var vromTile = this.machine.rom.vromTile[bank4k];
-            var baseIndex = address >> 4;
-            for (var i = 0; i < 128; i++) {
+            const vromTile = this.machine.rom.vromTile[bank4k];
+            const baseIndex = address >> 4;
+            for (let i = 0; i < 128; i++) {
                 this.machine.ppu.tiles[baseIndex + i] = vromTile[((bank2k % 2) << 7) + i];
             }
         }
 
         protected load8kRomBank(bank8k: number, address: number) {
-            var bank16k = Math.floor(bank8k / 2) % this.machine.rom.romCount;
-            var offset = (bank8k % 2) * 8192;
+            const bank16k = Math.floor(bank8k / 2) % this.machine.rom.romCount;
+            const offset = (bank8k % 2) * 8192;
 
             Mapper.copyArrayElements(this.machine.rom.rom[bank16k], offset,
                 this.machine.cpu.mem, address, 8192);
@@ -492,8 +492,8 @@ module NES {
             this.joypadLastWrite = 0;
 
             this.mousePressed = false;
-            this.mouseX = null;
-            this.mouseY = null;
+            this.mouseX = undefined;
+            this.mouseY = undefined;
 
             this.regBuffer = 0;
             this.regBufferCounter = 0;
@@ -563,8 +563,8 @@ module NES {
 
         }
 
-        public setReg(reg, value) {
-            var tmp;
+        public setReg(reg: number, value: number) {
+            let tmp;
 
             switch (reg) {
                 case 0:
@@ -668,8 +668,8 @@ module NES {
                     // Select ROM bank:
                     // -------------------------
                     tmp = value & 0xF;
-                    var bank;
-                    var baseBank = 0;
+                    let bank;
+                    let baseBank = 0;
 
                     if (this.machine.rom.romCount >= 32) {
                         // 1024 kB cart
@@ -706,10 +706,10 @@ module NES {
                         }
                     }
             }
-        };
+        }
 
         // Returns the register number from the address written to:
-        public getRegNumber(address) {
+        public getRegNumber(address: number) {
             if (address >= 0x8000 && address <= 0x9FFF) {
                 return 0;
             }
@@ -722,7 +722,7 @@ module NES {
             else {
                 return 3;
             }
-        };
+        }
 
         public loadROM() {
             if (!this.machine.rom.valid || this.machine.rom.romCount < 1) {
@@ -742,7 +742,7 @@ module NES {
         }
     }
 
-    export class Mapper2 extends Mapper0{
+    export class Mapper2 extends Mapper0 {
         public write(addr: number, val: number) {
             if (addr < 0x8000) {
                 super.write(addr, val);
@@ -788,7 +788,7 @@ module NES {
         private irqEnable: number;
         private prgAddressChanged: boolean;
 
-        constructor(nes:Machine){
+        constructor(nes: Machine) {
             super(nes);
             this.CMD_SEL_2_1K_VROM_0800 = 1;
             this.CMD_SEL_1K_VROM_1000 = 2;
@@ -798,13 +798,13 @@ module NES {
             this.CMD_SEL_ROM_PAGE1 = 6;
             this.CMD_SEL_ROM_PAGE2 = 7;
 
-            this.command = null;
-            this.prgAddressSelect = null;
-            this.chrAddressSelect = null;
-            this.pageNumber = null;
-            this.irqCounter = null;
-            this.irqLatchValue = null;
-            this.irqEnable = null;
+            this.command = undefined;
+            this.prgAddressSelect = undefined;
+            this.chrAddressSelect = undefined;
+            this.pageNumber = undefined;
+            this.irqCounter = undefined;
+            this.irqLatchValue = undefined;
+            this.irqEnable = undefined;
             this.prgAddressChanged = false;
         }
 
@@ -817,7 +817,7 @@ module NES {
                 case 0x8000:
                     // Command/Address Select register
                     this.command = val & 7;
-                    var tmp = (val >> 6) & 1;
+                    const tmp = (val >> 6) & 1;
                     if (tmp != this.prgAddressSelect) {
                         this.prgAddressChanged = true;
                     }
@@ -833,7 +833,7 @@ module NES {
                     if ((val & 1) !== 0) {
                         this.machine.ppu.setMirroringType(
                             MIRRORING_TYPE.HORIZONTAL_MIRRORING
-                            //this.machine.rom.HORIZONTAL_MIRRORING
+                            // this.machine.rom.HORIZONTAL_MIRRORING
                             );
                     }
                     else {
@@ -869,7 +869,7 @@ module NES {
             }
         }
 
-        public executeCommand(cmd, arg): void{
+        public executeCommand(cmd: number, arg: number): void {
             switch (cmd) {
                 case this.CMD_SEL_2_1K_VROM_0000:
                     if (this.chrAddressSelect === 0) {
@@ -983,7 +983,7 @@ module NES {
             }
         }
 
-        public loadROM(): void{
+        public loadROM(): void {
             if (!this.machine.rom.valid) {
                 alert("MMC3: Invalid ROM! Unable to load.");
                 return;
@@ -1004,12 +1004,12 @@ module NES {
             this.machine.cpu.requestINT(IRQType.IRQ_RESET);
         }
 
-        public clockIrqCounter(): void{
+        public clockIrqCounter(): void {
             if (this.irqEnable == 1) {
                 this.irqCounter--;
                 if (this.irqCounter < 0) {
                     // Trigger IRQ:
-                    //nes.getCpu().doIrq();
+                    // nes.getCpu().doIrq();
                     this.machine.cpu.requestINT(IRQType.IRQ_NORMAL);
                     this.irqCounter = this.irqLatchValue;
                 }

@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-module NES {
+namespace NES {
     export class Machine {
         public mmap: IMapper;
         public crashMessage: string;
@@ -32,10 +32,10 @@ module NES {
         public debugger: Debugger;
 
         public opt_preferredFrameRate: number = 60;
-        public opt_fpsInterval: number = 500;            //Time between updating FPS in ms
+        public opt_fpsInterval: number = 500;            // Time between updating FPS in ms
         public opt_showDisplay: boolean = true;
         public opt_emulateSound: boolean = true;
-        public opt_sampleRate: number = 44100;             //Sound sample rate in hz
+        public opt_sampleRate: number = 44100;             // Sound sample rate in hz
         public opt_CPU_FREQ_NTSC: number = 1789772.5;
         public opt_CPU_FREQ_PAL: number = 1773447.4;
         public opt_isIE: boolean = false;
@@ -46,23 +46,23 @@ module NES {
         private limitFrames: boolean;
         private romData: number[];
         private frameInterval: number;
-        private fpsInterval: number;
+        private fpsInterval: NodeJS.Timer;
         private frameTime: number;
         private lastFrameTime: number;
         private lastFpsTime: number;
-        // Frame begin time is used to control the frame rate in 
+        // Frame begin time is used to control the frame rate in
         private frameBeginTime: number;
 
         public drawScreen: boolean;
 
         constructor() {
-            var ua = window.navigator.userAgent.toLowerCase();
-            var msie = ua.indexOf("msie ");
-            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) 
+            const ua = window.navigator.userAgent.toLowerCase();
+            const msie = ua.indexOf("msie ");
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))
                 this.opt_isIE = true;
 
-            if (ua.indexOf('safari') != -1) {
-                if (ua.indexOf('chrome') > -1) {
+            if (ua.indexOf("safari") != -1) {
+                if (ua.indexOf("chrome") > -1) {
                     this.opt_isSafari = false; // Chrome
                 } else {
                     this.opt_isSafari = true; // Safari
@@ -78,9 +78,9 @@ module NES {
             this.ui = new UI(this);
             this.cpu = new CPU(this);
             this.ppu = new PPU(this);
-            //this.papu = new PAPU(this);
+            // this.papu = new PAPU(this);
             this.papu = new PAPU(this);
-            this.mmap = null; // set in loadRom()
+            this.mmap = undefined; // set in loadRom()
             this.keyboard = new Keyboard();
             this.debugger = new Debugger(this);
             this.drawScreen = true;
@@ -90,7 +90,7 @@ module NES {
 
         // Resets the system
         public reset() {
-            if (this.mmap !== null) {
+            if (this.mmap !== undefined) {
                 this.mmap.reset();
             }
 
@@ -99,15 +99,15 @@ module NES {
             this.papu.reset();
         }
 
-        public start(): void{
-            var self = this;
-            if (this.rom !== null && this.rom.valid) {
+        public start(): void {
+            const self = this;
+            if (this.rom !== undefined && this.rom.valid) {
                 if (!this.isRunning) {
                     this.isRunning = true;
 
-                    //this.frameInterval = setInterval(function () {
-                    //                            self.frame();
-                    //                        }, self.frameTime);
+                    // this.frameInterval = setInterval(function () {
+                    //                             self.frame();
+                    //                         }, self.frameTime);
                     this.frame(true);
 
                     this.resetFps();
@@ -124,16 +124,16 @@ module NES {
 
         private frame(draw: boolean) {
             this.drawScreen = draw;
-            var self = this;
+            const self = this;
 
             this.frameBeginTime = +new Date();
 
             this.ppu.drawFullScreenBg();
-            var cycles = 0;
-            var emulateSound = this.opt_emulateSound;
-            var cpu = this.cpu;
-            var ppu = this.ppu;
-            var papu = this.papu;
+            let cycles = 0;
+            const emulateSound = this.opt_emulateSound;
+            const cpu = this.cpu;
+            const ppu = this.ppu;
+            const papu = this.papu;
             FRAMELOOP: for (; ;) {
                 if (cpu.haltCycles === 0) {
 
@@ -171,8 +171,8 @@ module NES {
             this.fpsFrameCount++;
             this.lastFrameTime = +new Date();
 
-            var current = +new Date();
-            var dt = current - this.frameBeginTime;
+            const current = +new Date();
+            const dt = current - this.frameBeginTime;
             if (dt >= 1000 / this.opt_preferredFrameRate) {
                 setTimeout(function () { self.frame(false); });
             } else {
@@ -181,12 +181,12 @@ module NES {
         }
 
         private printFps() {
-            var now = +new Date();
-            var s = 'Running';
+            const now = +new Date();
+            let s = "Running";
             if (this.lastFpsTime) {
-                s += ': ' + (
+                s += ": " + (
                     this.fpsFrameCount / ((now - this.lastFpsTime) / 1000)
-                    ).toFixed(2) + ' FPS';
+                    ).toFixed(2) + " FPS";
             }
             this.ui.updateStatus(s);
             this.fpsFrameCount = 0;
@@ -200,7 +200,7 @@ module NES {
         }
 
         private reloadRom(): void {
-            if (this.romData !== null) {
+            if (this.romData !== undefined) {
                 this.loadRom(this.romData);
             }
         }
@@ -237,7 +237,7 @@ module NES {
         }
 
         public resetFps() {
-            this.lastFpsTime = null;
+            this.lastFpsTime = undefined;
             this.fpsFrameCount = 0;
         }
     }
