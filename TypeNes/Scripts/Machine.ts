@@ -18,227 +18,235 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-namespace NES {
-    export class Machine {
-        public mmap: IMapper;
-        public crashMessage: string;
-        public Stop() { }
-        public cpu: CPU;
-        public ppu: PPU;
-        public papu: PAPU;
-        public keyboard: Keyboard;
-        public rom: ROM;
-        public ui: UI;
-        public debugger: Debugger;
 
-        public opt_preferredFrameRate: number = 60;
-        public opt_fpsInterval: number = 500;            // Time between updating FPS in ms
-        public opt_showDisplay: boolean = true;
-        public opt_emulateSound: boolean = true;
-        public opt_sampleRate: number = 44100;             // Sound sample rate in hz
-        public opt_CPU_FREQ_NTSC: number = 1789772.5;
-        public opt_CPU_FREQ_PAL: number = 1773447.4;
-        public opt_isIE: boolean = false;
-        public opt_isSafari: boolean = false;
+import { IMapper } from "./Mappers";
+import { PPU } from "./PPU";
+import { PAPU } from "./APU";
+import { Keyboard } from "./Keyboard";
+import { ROM } from "./ROM";
+import { UI } from "./UI";
+import { Debugger } from "./Debugger";
+import { CPU } from "./CPU";
 
-        private isRunning: boolean;
-        private fpsFrameCount: number;
-        private limitFrames: boolean;
-        private romData: number[];
-        private frameInterval: number;
-        private fpsInterval: NodeJS.Timer;
-        private frameTime: number;
-        private lastFrameTime: number;
-        private lastFpsTime: number;
-        // Frame begin time is used to control the frame rate in
-        private frameBeginTime: number;
+export class Machine {
+    public mmap: IMapper;
+    public crashMessage: string;
+    public Stop() { }
+    public cpu: CPU;
+    public ppu: PPU;
+    public papu: PAPU;
+    public keyboard: Keyboard;
+    public rom: ROM;
+    public ui: UI;
+    public debugger: Debugger;
 
-        public drawScreen: boolean;
+    public opt_preferredFrameRate: number = 60;
+    public opt_fpsInterval: number = 500;            // Time between updating FPS in ms
+    public opt_showDisplay: boolean = true;
+    public opt_emulateSound: boolean = true;
+    public opt_sampleRate: number = 44100;             // Sound sample rate in hz
+    public opt_CPU_FREQ_NTSC: number = 1789772.5;
+    public opt_CPU_FREQ_PAL: number = 1773447.4;
+    public opt_isIE: boolean = false;
+    public opt_isSafari: boolean = false;
 
-        constructor() {
-            const ua = window.navigator.userAgent.toLowerCase();
-            const msie = ua.indexOf("msie ");
-            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))
-                this.opt_isIE = true;
+    private isRunning: boolean;
+    private fpsFrameCount: number;
+    private limitFrames: boolean;
+    private romData: number[];
+    private frameInterval: number;
+    private fpsInterval: NodeJS.Timer;
+    private frameTime: number;
+    private lastFrameTime: number;
+    private lastFpsTime: number;
+    // Frame begin time is used to control the frame rate in
+    private frameBeginTime: number;
 
-            if (ua.indexOf("safari") != -1) {
-                if (ua.indexOf("chrome") > -1) {
-                    this.opt_isSafari = false; // Chrome
-                } else {
-                    this.opt_isSafari = true; // Safari
-                    }
+    public drawScreen: boolean;
+
+    constructor() {
+        const ua = window.navigator.userAgent.toLowerCase();
+        const msie = ua.indexOf("msie ");
+        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))
+            this.opt_isIE = true;
+
+        if (ua.indexOf("safari") != -1) {
+            if (ua.indexOf("chrome") > -1) {
+                this.opt_isSafari = false; // Chrome
+            } else {
+                this.opt_isSafari = true; // Safari
                 }
-
-            this.isRunning = false;
-            this.fpsFrameCount = 0;
-            this.limitFrames = true;
-            this.romData = undefined;
-
-            this.frameTime = 1000 / this.opt_preferredFrameRate;
-            this.ui = new UI(this);
-            this.cpu = new CPU(this);
-            this.ppu = new PPU(this);
-            // this.papu = new PAPU(this);
-            this.papu = new PAPU(this);
-            this.mmap = undefined; // set in loadRom()
-            this.keyboard = new Keyboard();
-            this.debugger = new Debugger(this);
-            this.drawScreen = true;
-
-            this.ui.updateStatus("Ready to load a ROM.");
-        }
-
-        // Resets the system
-        public reset() {
-            if (this.mmap !== undefined) {
-                this.mmap.reset();
             }
 
-            this.cpu.reset();
-            this.ppu.reset();
-            this.papu.reset();
+        this.isRunning = false;
+        this.fpsFrameCount = 0;
+        this.limitFrames = true;
+        this.romData = undefined;
+
+        this.frameTime = 1000 / this.opt_preferredFrameRate;
+        this.ui = new UI(this);
+        this.cpu = new CPU(this);
+        this.ppu = new PPU(this);
+        // this.papu = new PAPU(this);
+        this.papu = new PAPU(this);
+        this.mmap = undefined; // set in loadRom()
+        this.keyboard = new Keyboard();
+        this.debugger = new Debugger(this);
+        this.drawScreen = true;
+
+        this.ui.updateStatus("Ready to load a ROM.");
+    }
+
+    // Resets the system
+    public reset() {
+        if (this.mmap !== undefined) {
+            this.mmap.reset();
         }
 
-        public start(): void {
-            const self = this;
-            if (this.rom !== undefined && this.rom.valid) {
-                if (!this.isRunning) {
-                    this.isRunning = true;
+        this.cpu.reset();
+        this.ppu.reset();
+        this.papu.reset();
+    }
 
-                    // this.frameInterval = setInterval(function () {
-                    //                             self.frame();
-                    //                         }, self.frameTime);
-                    this.frame(true);
+    public start(): void {
+        const self = this;
+        if (this.rom !== undefined && this.rom.valid) {
+            if (!this.isRunning) {
+                this.isRunning = true;
 
-                    this.resetFps();
-                    this.printFps();
-                    this.fpsInterval = setInterval(function () {
-                                            self.printFps();
-                                            }, self.opt_fpsInterval);
+                // this.frameInterval = setInterval(function () {
+                //                             self.frame();
+                //                         }, self.frameTime);
+                this.frame(true);
+
+                this.resetFps();
+                this.printFps();
+                this.fpsInterval = setInterval(function () {
+                                        self.printFps();
+                                        }, self.opt_fpsInterval);
+            }
+        }
+        else {
+            this.ui.updateStatus("There is no ROM loaded, or it is invalid.");
+        }
+    }
+
+    private frame(draw: boolean) {
+        this.drawScreen = draw;
+        const self = this;
+
+        this.frameBeginTime = +new Date();
+
+        this.ppu.drawFullScreenBg();
+        let cycles = 0;
+        const emulateSound = this.opt_emulateSound;
+        const cpu = this.cpu;
+        const ppu = this.ppu;
+        const papu = this.papu;
+        FRAMELOOP: for (; ;) {
+            if (cpu.haltCycles === 0) {
+
+                // Execute a CPU instruction
+                cycles = cpu.step();
+                if (cycles == -1)
+                    return;
+                if (emulateSound) {
+                    papu.addCycles(cycles);
                 }
+                cycles *= 3;                        // for NTSC, PPU is 5.37MHz, and CPU is 1.79MHz, 3 times speed of CPU.
             }
             else {
-                this.ui.updateStatus("There is no ROM loaded, or it is invalid.");
-            }
-        }
-
-        private frame(draw: boolean) {
-            this.drawScreen = draw;
-            const self = this;
-
-            this.frameBeginTime = +new Date();
-
-            this.ppu.drawFullScreenBg();
-            let cycles = 0;
-            const emulateSound = this.opt_emulateSound;
-            const cpu = this.cpu;
-            const ppu = this.ppu;
-            const papu = this.papu;
-            FRAMELOOP: for (; ;) {
-                if (cpu.haltCycles === 0) {
-
-                    // Execute a CPU instruction
-                    cycles = cpu.step();
-                    if (cycles == -1)
-                        return;
+                if (cpu.haltCycles > 8) {
+                    cycles = 24;
                     if (emulateSound) {
-                        papu.addCycles(cycles);
+                        papu.addCycles(8);
                     }
-                    cycles *= 3;                        // for NTSC, PPU is 5.37MHz, and CPU is 1.79MHz, 3 times speed of CPU.
+                    cpu.haltCycles -= 8;
                 }
                 else {
-                    if (cpu.haltCycles > 8) {
-                        cycles = 24;
-                        if (emulateSound) {
-                            papu.addCycles(8);
-                        }
-                        cpu.haltCycles -= 8;
+                    cycles = cpu.haltCycles * 3;
+                    if (emulateSound) {
+                        papu.addCycles(cpu.haltCycles);
                     }
-                    else {
-                        cycles = cpu.haltCycles * 3;
-                        if (emulateSound) {
-                            papu.addCycles(cpu.haltCycles);
-                        }
-                        cpu.haltCycles = 0;
-                    }
-                }
-
-                if (ppu.incrementCycle(cycles)) {
-                    break FRAMELOOP;
+                    cpu.haltCycles = 0;
                 }
             }
 
-            this.fpsFrameCount++;
-            this.lastFrameTime = +new Date();
-
-            const current = +new Date();
-            const dt = current - this.frameBeginTime;
-            if (dt >= 1000 / this.opt_preferredFrameRate) {
-                setTimeout(function () { self.frame(false); });
-            } else {
-                setTimeout(function () { self.frame(true); }, 1000 / this.opt_preferredFrameRate - dt);
+            if (ppu.incrementCycle(cycles)) {
+                break FRAMELOOP;
             }
         }
 
-        private printFps() {
-            const now = +new Date();
-            let s = "Running";
-            if (this.lastFpsTime) {
-                s += ": " + (
-                    this.fpsFrameCount / ((now - this.lastFpsTime) / 1000)
-                    ).toFixed(2) + " FPS";
-            }
-            this.ui.updateStatus(s);
-            this.fpsFrameCount = 0;
-            this.lastFpsTime = now;
+        this.fpsFrameCount++;
+        this.lastFrameTime = +new Date();
+
+        const current = +new Date();
+        const dt = current - this.frameBeginTime;
+        if (dt >= 1000 / this.opt_preferredFrameRate) {
+            setTimeout(function () { self.frame(false); });
+        } else {
+            setTimeout(function () { self.frame(true); }, 1000 / this.opt_preferredFrameRate - dt);
+        }
+    }
+
+    private printFps() {
+        const now = +new Date();
+        let s = "Running";
+        if (this.lastFpsTime) {
+            s += ": " + (
+                this.fpsFrameCount / ((now - this.lastFpsTime) / 1000)
+                ).toFixed(2) + " FPS";
+        }
+        this.ui.updateStatus(s);
+        this.fpsFrameCount = 0;
+        this.lastFpsTime = now;
+    }
+
+    private stop() {
+        clearInterval(this.frameInterval);
+        clearInterval(this.fpsInterval);
+        this.isRunning = false;
+    }
+
+    private reloadRom(): void {
+        if (this.romData !== undefined) {
+            this.loadRom(this.romData);
+        }
+    }
+
+    // Loads a ROM file into the CPU and PPU.
+    // The ROM file is validated first.
+    public loadRom(data: number[]): boolean {
+        if (this.isRunning) {
+            this.stop();
         }
 
-        private stop() {
-            clearInterval(this.frameInterval);
-            clearInterval(this.fpsInterval);
-            this.isRunning = false;
-        }
+        this.ui.updateStatus("Loading ROM...");
 
-        private reloadRom(): void {
-            if (this.romData !== undefined) {
-                this.loadRom(this.romData);
+        // Load ROM file:
+        this.rom = new ROM(this);
+        this.rom.load(data);
+
+        if (this.rom.valid) {
+            this.reset();
+            this.mmap = this.rom.createMapper();
+            if (!this.mmap) {
+                return;
             }
+            this.mmap.loadROM();
+            this.ppu.setMirroringType(this.rom.getMirroringType());
+            this.romData = data;
+
+            this.ui.updateStatus("Successfully loaded. Ready to be started.");
         }
-
-        // Loads a ROM file into the CPU and PPU.
-        // The ROM file is validated first.
-        public loadRom(data: number[]): boolean {
-            if (this.isRunning) {
-                this.stop();
-            }
-
-            this.ui.updateStatus("Loading ROM...");
-
-            // Load ROM file:
-            this.rom = new ROM(this);
-            this.rom.load(data);
-
-            if (this.rom.valid) {
-                this.reset();
-                this.mmap = this.rom.createMapper();
-                if (!this.mmap) {
-                    return;
-                }
-                this.mmap.loadROM();
-                this.ppu.setMirroringType(this.rom.getMirroringType());
-                this.romData = data;
-
-                this.ui.updateStatus("Successfully loaded. Ready to be started.");
-            }
-            else {
-                this.ui.updateStatus("Invalid ROM!");
-            }
-            return this.rom.valid;
+        else {
+            this.ui.updateStatus("Invalid ROM!");
         }
+        return this.rom.valid;
+    }
 
-        public resetFps() {
-            this.lastFpsTime = undefined;
-            this.fpsFrameCount = 0;
-        }
+    public resetFps() {
+        this.lastFpsTime = undefined;
+        this.fpsFrameCount = 0;
     }
 }

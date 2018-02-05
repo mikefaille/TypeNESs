@@ -217,19 +217,12 @@
             left:30%;
         }
     </style>
-    <script type="text/javascript" src="Scripts/CPU.js"></script>
-    <script type="text/javascript" src="Scripts/Keyboard.js"></script>
-    <script type="text/javascript" src="Scripts/Machine.js"></script>
-    <script type="text/javascript" src="Scripts/Mappers.js"></script>
-    <script type="text/javascript" src="Scripts/PPU.js"></script>
-    <script type="text/javascript" src="Scripts/APU.js"></script>
-    <script type="text/javascript" src="Scripts/ROM.js"></script>
-    <script type="text/javascript" src="Scripts/UI.js"></script>
-    <script type="text/javascript" src="Scripts/Debugger.js"></script>
+    <script type="text/javascript" src="dist/TypeNESs.js"></script>
     <script type="text/javascript">
         function loadDefaultGame() {
             document.getElementById('chooseFile').style.display = 'none';
             game = new NES.Machine();
+
             game.ui.loadROM();
         }
     </script>
