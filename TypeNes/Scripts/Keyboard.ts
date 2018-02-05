@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-namespace NES {
+// namespace NES {
     enum KEYS {
         KEY_A = 0,
         KEY_B = 1,
@@ -145,4 +145,4 @@ namespace NES {
             }
         }
     }
-}
+// }

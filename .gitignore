@@ -3,3 +3,15 @@ coverage/
 node_modules/
 *.js.map
 .vs
+
+TypeNes/Scripts/APU.js
+TypeNes/Scripts/CPU.js
+TypeNes/Scripts/Debugger.js
+TypeNes/Scripts/Keyboard.js
+TypeNes/Scripts/Machine.js
+TypeNes/Scripts/Mappers.js
+TypeNes/Scripts/PPU.js
+TypeNes/Scripts/ROM.js
+TypeNes/Scripts/UI.js
+TypeNes/__tests__/*.test.js
+TypeNes/dist/
