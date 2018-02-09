@@ -4,11 +4,12 @@
   "description": "an NES emulator in TypeScript",
   "main": "index.html",
   "scripts": {
-    "build-all": "npm run build && npm run tslint && npm run webpack",
+    "build": "npm run compile && npm run webpack",
     "test": "jest --forceExit --coverage --verbose",
-    "build": "tsc",
+    "compile": "tsc",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "webpack": "cd TypeNes && webpack"
+    "webpack": "cd TypeNes && webpack",
+    "serve": "lite-server --baseDir=TypeNes"
   },
   "dependencies": {
     "typescript": "^2.7.1"
@@ -17,6 +18,7 @@
     "@types/jest": "^19.2.4",
     "@types/node": "^9.4.0",
     "jest": "^22.1.4",
+    "lite-server": "^2.3.0",
     "shelljs": "^0.7.7",
     "ts-jest": "^21.2.4",
     "ts-node": "^4.0.2",
